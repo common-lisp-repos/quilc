@@ -158,6 +158,11 @@ Returns a value list: (processed-program, of type parsed-program
                        unpreserved-block-duration, of type real)"
   (format-noise "COMPILER-HOOK: entrance.")
 
+  (setf parsed-program (copy-instance parsed-program))
+
+  (unless (eql ':naive rewiring-type)
+    (setf parsed-program (compress-qubits parsed-program)))
+
   (warm-chip-spec-lookup-cache chip-specification)
 
   ;; we disallow compilation of programs that use memory aliasing
@@ -323,10 +328,10 @@ Returns a value list: (processed-program, of type parsed-program
                                     (make-rewiring (chip-spec-n-qubits chip-specification))
                                     (basic-block-in-rewiring blk))))
                (format-noise "COMPILER-HOOK: Matching rewiring from ~A (~A) to ~A (~A)."
-                       (basic-block-name registrant)
-                       final-l2p
-                       (basic-block-name blk)
-                       initial-l2p)
+                             (basic-block-name registrant)
+                             final-l2p
+                             (basic-block-name blk)
+                             initial-l2p)
                ;; if they're the same, proceed with analyzing the jump
                (unless (equalp final-l2p initial-l2p)
                  (return-from process-block

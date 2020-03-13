@@ -1228,6 +1228,17 @@ If this slot is not supplied, then the gate is considered *anonymous*. If this i
 N.B. This slot shoould not be accessed directly! Consider using GATE-APPLICATION-GATE, or, if you really know what you're doing, %SET-GATE-APPLICATION-GATE."))
   (:documentation "An instruction representing an application of a known gate."))
 
+(defmethod copy-instance ((application gate-application))
+  (make-instance 'gate-application
+                 :operator (copy-instance (application-operator application))
+                 :parameters (mapcar #'copy-instance
+                                     (application-parameters application))
+                 :arguments (mapcar #'copy-instance
+                                    (application-arguments application))
+                 :name-resolution (copy-instance (gate-application-resolution
+                                                  application))
+                 :gate (copy-instance (gate-application-gate application))))
+
 (defgeneric gate-application-gate (app)
   ;; See the actual definition of this in gates.lisp.
   (:documentation "Return a gate-like object represented in the application APP.")
@@ -1626,6 +1637,22 @@ For example,
    :memory-definitions '()
    :executable-code #())
   (:documentation "A representation of a parsed Quil program, in which instructions have been duly sorted into their various categories (e.g. definitions vs executable code), and internal references have been resolved."))
+
+(defmethod copy-instance ((parsed-program parsed-program))
+  (let ((pp (make-instance 'parsed-program)))
+    (setf (parsed-program-gate-definitions pp)
+          (map 'list #'copy-instance
+               (parsed-program-gate-definitions parsed-program)))
+    (setf (parsed-program-circuit-definitions pp)
+          (map 'list #'copy-instance
+               (parsed-program-circuit-definitions parsed-program)))
+    (setf (parsed-program-memory-definitions pp)
+          (map 'list #'copy-instance
+               (parsed-program-memory-definitions parsed-program)))
+    (setf (parsed-program-executable-code pp)
+          (map 'vector #'copy-instance
+               (parsed-program-executable-code parsed-program)))
+    pp))
 
 ;; These NTH-INSTR functions prioritize caller convenience and error checking over speed. They could
 ;; possibly be sped up by doing away with type checking, making %NTH-INSTR into a macro that takes
